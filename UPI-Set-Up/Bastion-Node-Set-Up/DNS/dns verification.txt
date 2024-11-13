@@ -1,0 +1,10 @@
+dns verification
+
+1. For reverse lookup:
+
+dig -x 172.40.20.171
+
+2. For forward lookup: 
+
+dig  api.ocp4.example.com
+

@@ -1,0 +1,39 @@
+[root@helper-upi ~]# cat /etc/dhcp/dhcpd.conf
+# DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp-server/dhcpd.conf.example
+#   see dhcpd.conf(5) man page
+#
+default-lease-time 3600;
+max-lease-time 7200;
+authoritative;
+subnet 172.40.20.0 netmask 255.255.255.0 {
+        option routers                  172.40.20.1;
+        option subnet-mask              255.255.255.0;
+        option domain-search            "vcenterlocalhost.com";
+        option domain-name-servers      172.40.20.170,8.8.8.8;
+        range   172.40.20.100   172.40.20.250;
+}
+host control-plane0 {
+         hardware ethernet 00:50:56:bc:47:bb;
+         fixed-address 172.27.40.171;
+ }
+host bootstrap {
+         hardware ethernet 00:50:56:93:b4:b4;
+         fixed-address 172.27.40.176;
+ }
+host control-plane1 {
+         hardware ethernet 00:50:56:bc:f3:f7;
+         fixed-address 172.27.40.172;
+ }
+host control-plane2 {
+         hardware ethernet 00:50:56:bc:f4:55;
+         fixed-address 172.27.40.173;
+ }
+host worker0 {
+         hardware ethernet 00:50:56:bc:7d:c6;
+         fixed-address 172.27.40.174;
+ }
+host worker1 {
+         hardware ethernet 00:50:56:bc:1e:0a;
+         fixed-address 172.27.40.175;
+ }

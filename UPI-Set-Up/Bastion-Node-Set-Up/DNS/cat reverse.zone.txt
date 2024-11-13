@@ -1,0 +1,19 @@
+[root@helper-upi ~]# cat /var/named/chroot/var/named/172.40.20.rev
+$TTL 1W
+@   IN  SOA ns1.example.com. root.example.com. (
+            2024111302  ; serial
+            3H          ; refresh (3 hours)
+            30M         ; retry (30 minutes)
+            2W          ; expiry (2 weeks)
+            1W )        ; minimum (1 week)
+    IN  NS  ns1.example.com.
+
+170 IN  PTR ns1.example.com.                     ; Primary nameserver
+170 IN  PTR smtp.example.com.                    ; Mail server
+171 IN  PTR control-plane0.ocp4.example.com.     ; Control plane node 0
+172 IN  PTR control-plane1.ocp4.example.com.     ; Control plane node 1
+173 IN  PTR control-plane2.ocp4.example.com.     ; Control plane node 2
+174 IN  PTR worker0.ocp4.example.com.            ; Worker node 0
+175 IN  PTR worker1.ocp4.example.com.            ; Worker node 1
+170 IN  PTR api.ocp4.example.com.                ; API server
+170 IN  PTR api-int.ocp4.example.com.            ; Internal API load balancer

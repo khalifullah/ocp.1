@@ -1,0 +1,130 @@
+[root@helper-upi ~]# cat /etc/haproxy/haproxy.cfg
+#####################################################################################
+
+#---------------------------------------------------------------------
+# Example configuration for a possible web application.
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log         127.0.0.1 local2
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+    stats socket /var/lib/haproxy/stats
+    ssl-default-bind-ciphers PROFILE=SYSTEM
+    ssl-default-server-ciphers PROFILE=SYSTEM
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+#---------------------------------------------------------------------
+# main frontend which proxys to the backends
+#---------------------------------------------------------------------
+frontend main
+    bind *:5000
+    acl url_static       path_beg       -i /static /images /javascript /stylesheets
+    acl url_static       path_end       -i .jpg .gif .png .css .js
+    use_backend static          if url_static
+    default_backend             app
+
+#---------------------------------------------------------------------
+# static backend for serving up images, stylesheets and such
+#---------------------------------------------------------------------
+backend static
+    balance     roundrobin
+    server      static 172.0.0.1:4331 check
+
+#---------------------------------------------------------------------
+# round robin balancing between the various backends
+#---------------------------------------------------------------------
+backend app
+    balance     roundrobin
+    server  app1 172.0.0.1:5001 check
+    server  app2 172.0.0.1:5002 check
+    server  app3 172.0.0.1:5003 check
+    server  app4 172.0.0.1:5004 check
+
+### API SERVER
+
+#---------------------------------------------------------------------
+frontend api-server-6443
+   mode tcp
+   bind 172.40.20.170:6443
+   default_backend api-server-6443
+
+frontend api-server-22623
+   mode tcp
+   bind 172.40.20.170:22623
+   default_backend api-server-22623
+
+### API SERVER BACKENDS
+
+#---------------------------------------------------------------------
+backend api-server-6443
+   mode tcp
+   balance roundrobin
+      server control-plane0 172.40.20.171:6443 check
+      server control-plane1 172.40.20.172:6443 check
+      server control-plane2 172.40.20.173:6443 check
+      server bootstrap 172.40.20.176:6443 check
+
+backend api-server-22623
+   mode tcp
+   balance roundrobin
+      server control-plane0 172.40.20.171:22623 check
+      server control-plane1 172.40.20.172:22623 check
+      server control-plane2 172.40.20.173:22623 check
+      server bootstrap 172.40.20.176:22623 check
+
+### INGRESS TRAFFIC
+
+#---------------------------------------------------------------------
+frontend ocp_ingress_80
+   mode tcp
+   bind 172.40.20.170:80
+   default_backend ocp_ingress_80
+
+frontend ocp_ingress_443
+   mode tcp
+   bind 172.40.20.170:443
+   default_backend ocp_ingress_443
+
+### INGRESS TRAFFIC BACKENDS
+
+#---------------------------------------------------------------------
+backend ocp_ingress_80
+   mode tcp
+   balance roundrobin
+      server worker0 172.40.20.174:80 check
+      server workerl 172.40.20.175:80 check
+
+backend ocp_ingress_443
+   mode tcp
+   balance roundrobin
+      server worker0 172.40.20.174:443 check
+      server worker1 172.40.20.175:443 check
