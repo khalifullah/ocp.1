@@ -1,0 +1,5 @@
+DHCP Set-up
+
+sudo dnf install dhcp-server -y
+
+systemctl start dhcpd.service && systemctl enable dhcpd.service

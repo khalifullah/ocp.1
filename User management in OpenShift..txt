@@ -1,0 +1,48 @@
+User management in OpenShift.
+
+oc login -u kubeadmin -p RrRu5-sFFUZ-eBWIi-A2D2b --insecure-skip-tls-verify=true https://api.ocp-single.example.com:6443
+
+#creation of user.
+htpasswd -B -b /tmp/htpasswd khalif redhat123  
+
+#for passwd update.
+htpasswd -b /tmp/htpasswd khalif redhat123     
+
+#creation of secrets.
+oc create secret generic htpass-secret --from-file=htpasswd=/tmp/htpasswd -n openshift-config --dry-run=client -o yaml | oc apply -f -   
+
+#Force OAuth Configuration Reload.
+oc delete pod -l app=oauth-openshift -n openshift-authentication
+
+#for verifying the pod.
+oc get pod -l app=oauth-openshift -n openshift-authentication
+
+#adding admin policy to the user.
+oc adm policy add-cluster-role-to-user cluster-admin khalif
+
+#removing admin policy to the user.
+oc adm policy remove-cluster-role-from-user cluster-role username
+
+#You can use the oc adm policy who-can command to determine whether a user can execute an action on a resource.
+oc adm policy who-can delete user
+
+#creation of group in the cluster. 
+oc adm groups new lead-developers
+
+#Adding members to the group.
+oc adm groups add-users lead-developers user1
+
+oc login -u test -p redhat123 --insecure-skip-tls-verify=true https://api.ocp-single.example.com:6443
+
+oc edit oauth cluster
+
+spec:
+  identityProviders:
+  - name: my_htpasswd_provider
+    mappingMethod: claim
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpass-secret
+
+

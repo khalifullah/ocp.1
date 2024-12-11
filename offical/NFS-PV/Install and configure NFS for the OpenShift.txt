@@ -1,0 +1,225 @@
+NFS PV-PVC Set-up in OpenShift
+
+https://www.youtube.com/watch?v=6DmEp0kXUOI&t=549s
+
+-------------------------------------------------------------------------------
+
+dnf install nfs-utils -y
+
+---------------------------------------------------------
+
+Create the Share
+Check available disk space and its location df -h
+
+mkdir -p /shares/registry
+chown -R nobody:nobody /shares/registry
+chmod -R 777 /shares/registry
+
+---------------------------------------------------------
+
+Export the Share
+
+echo "/shares/registry  192.168.22.0/24(rw,sync,no_root_squash,no_subtree_check,no_wdelay)" > /etc/exports
+exportfs -rv
+
+---------------------------------------------------------
+
+Set Firewall rules:
+
+firewall-cmd --zone=internal --add-service mountd --permanent
+firewall-cmd --zone=internal --add-service rpc-bind --permanent
+firewall-cmd --zone=internal --add-service nfs --permanent
+firewall-cmd --reload
+
+----------------------------------------------------------
+
+Enable and start the NFS related services
+
+systemctl enable nfs-server rpcbind
+systemctl start nfs-server rpcbind nfs-mountd
+
+----------------------------------------------------------
+
+cat class.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-client
+provisioner: nfs-storage
+parameters:
+  archiveOnDelete: "false" # Data will not be deleted if the PV is removed
+reclaimPolicy: Retain # Ensures the data remains even if PVC is deleted
+
+-------------------------------------------------------------------------------
+
+cat namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nfs
+
+-------------------------------------------------------------------------------
+cat rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nfs-client-provisioner
+  namespace: nfs # Replace 'nfs' with your namespace if different
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nfs-client-provisioner-runner
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: run-nfs-client-provisioner
+subjects:
+  - kind: ServiceAccount
+    name: nfs-client-provisioner
+    namespace: nfs
+roleRef:
+  kind: ClusterRole
+  name: nfs-client-provisioner-runner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: leader-locking-nfs-client-provisioner
+  namespace: nfs
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: leader-locking-nfs-client-provisioner
+  namespace: nfs
+subjects:
+  - kind: ServiceAccount
+    name: nfs-client-provisioner
+    namespace: nfs
+roleRef:
+  kind: Role
+  name: leader-locking-nfs-client-provisioner
+  apiGroup: rbac.authorization.k8s.io
+
+-----------------------------------------------------------------------------
+
+cat deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client-provisioner
+  namespace: nfs # Replace 'nfs' with your namespace if different
+  labels:
+    app: nfs-client-provisioner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+    spec:
+      serviceAccountName: nfs-client-provisioner
+      containers:
+        - name: nfs-client-provisioner
+          image: registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: nfs-storage
+            - name: NFS_SERVER
+              value: 172.40.20.12 # Replace with your NFS server's IP address
+            - name: NFS_PATH
+              value: /data/nfs-sc # Replace with the NFS path you have configured
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: 172.40.20.12 # Replace with your NFS server's IP address
+            path: /data/nfs-sc # Replace with the NFS path you have configured
+
+--------------------------------------------------------------------------
+
+cat pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-claim
+  namespace: nfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-client
+  resources:
+    requests:
+      storage: 1Gi
+
+---------------------------------------------------------------------------
+
+cat application-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-test-app
+  namespace: nfs # Ensure this matches the namespace used for the PVC
+  labels:
+    app: nfs-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-test-app
+  template:
+    metadata:
+      labels:
+        app: nfs-test-app
+    spec:
+      containers:
+        - name: nfs-test-container
+          image: nginx:latest # Example application
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /usr/share/nginx/html # Mounting PVC to this directory
+      volumes:
+        - name: nfs-volume
+          persistentVolumeClaim:
+            claimName: test-claim # Reference the PVC created earlier
+
+---------------------------------------------------------
+
+oc create role use-scc-hostmount-anyuid --verb=use --resource=scc --resource-name=hostmount-anyuid -n nfs
+
+oc adm policy add-role-to-user use-scc-hostmount-anyuid -z nfs-client-provisioner --role-namespace nfs -n nfs
+
+oc scale deploy nfs-client-provisioner -n nfs --replicas 1
+
