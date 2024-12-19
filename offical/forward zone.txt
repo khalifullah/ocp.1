@@ -1,0 +1,25 @@
+$TTL 1W
+@   IN  SOA ns1.vcenterlocalhost.com. root.vcenterlocalhost.com. (
+            2019070700  ; serial
+            3H          ; refresh (3 hours)
+            30M         ; retry (30 minutes)
+            2W          ; expiry (2 weeks)
+            1W )        ; minimum (1 week)
+    IN  NS  ns1.vcenterlocalhost.com.
+    IN  MX 10 smtp.vcenterlocalhost.com.
+
+ns1.vcenterlocalhost.com.             IN  A 172.40.20.170  ; Primary nameserver
+smtp.vcenterlocalhost.com.            IN  A 172.40.20.170  ; Mail server
+helper.vcenterlocalhost.com.          IN  A 172.40.20.170  ; Helper server
+api.nandita.vcenterlocalhost.com.        IN  A 172.40.20.170  ; API server
+api-int.nandita.vcenterlocalhost.com.    IN  A 172.40.20.170  ; Internal API load balancer
+*.apps.nandita.vcenterlocalhost.com.     IN  A 172.40.20.170  ; Wildcard record for applications
+
+nandita-bootstrap.nandita.vcenterlocalhost.com. 86400 IN A 172.40.20.176   ; Bootstrap node
+
+control-plane0.nandita.vcenterlocalhost.com.  IN  A 172.40.20.171  ; Control plane node 0
+control-plane1.nandita.vcenterlocalhost.com.  IN  A 172.40.20.172  ; Control plane node 1
+control-plane2.nandita.vcenterlocalhost.com.  IN  A 172.40.20.173  ; Control plane node 2
+
+worker0.nandita.vcenterlocalhost.com.    IN  A 172.40.20.174  ; Worker node 0
+worker1.nandita.vcenterlocalhost.com.    IN  A 172.40.20.175  ; Worker node 1
