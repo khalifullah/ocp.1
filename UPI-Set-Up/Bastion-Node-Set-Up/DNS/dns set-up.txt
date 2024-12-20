@@ -1,5 +1,0 @@
-DNS set-up:
-
-sudo dnf install bind bind-utils -y
-
-sudo systemctl enable named && sudo systemctl start named

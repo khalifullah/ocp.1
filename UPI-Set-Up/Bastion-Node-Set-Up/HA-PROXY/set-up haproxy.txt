@@ -1,4 +1,0 @@
-sudo dnf install haproxy -y
-
-haproxy -v
-
