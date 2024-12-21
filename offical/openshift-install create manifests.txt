@@ -1,0 +1,3 @@
+openshift-install create manifests --dir ocp4/
+openshift-install create ignition-configs --dir ocp4/
+openshift-install --dir ocp4/ wait-for bootstrap-complete --log-level=debug
