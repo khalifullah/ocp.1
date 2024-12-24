@@ -10,16 +10,17 @@ $TTL 1W
 
 ns1.vcenterlocalhost.com.             IN  A 172.40.20.170  ; Primary nameserver
 smtp.vcenterlocalhost.com.            IN  A 172.40.20.170  ; Mail server
-helper.vcenterlocalhost.com.          IN  A 172.40.20.170  ; Helper server
-api.nandita.vcenterlocalhost.com.        IN  A 172.40.20.170  ; API server
-api-int.nandita.vcenterlocalhost.com.    IN  A 172.40.20.170  ; Internal API load balancer
-*.apps.nandita.vcenterlocalhost.com.     IN  A 172.40.20.170  ; Wildcard record for applications
+helper.vcenterlocalhost.com.          IN  A 172.40.20.170  ; Helper server  #hostname of the machine
+api.ocp512.vcenterlocalhost.com.        IN  A 172.40.20.170  ; API server
+api-int.ocp512.vcenterlocalhost.com.    IN  A 172.40.20.170  ; Internal API load balancer
+*.apps.ocp512.vcenterlocalhost.com.     IN  A 172.40.20.170  ; Wildcard record for applications
 
-nandita-bootstrap.nandita.vcenterlocalhost.com. 86400 IN A 172.40.20.176   ; Bootstrap node
+bootstrap.ocp512.vcenterlocalhost.com. 86400 IN A 172.40.20.179   ; Bootstrap node
 
-control-plane0.nandita.vcenterlocalhost.com.  IN  A 172.40.20.171  ; Control plane node 0
-control-plane1.nandita.vcenterlocalhost.com.  IN  A 172.40.20.172  ; Control plane node 1
-control-plane2.nandita.vcenterlocalhost.com.  IN  A 172.40.20.173  ; Control plane node 2
+control-plane1.ocp512.vcenterlocalhost.com.  IN  A 172.40.20.171  ; Control plane node 1
+control-plane2.ocp512.vcenterlocalhost.com.  IN  A 172.40.20.172  ; Control plane node 2
+control-plane3.ocp512.vcenterlocalhost.com.  IN  A 172.40.20.173  ; Control plane node 3
 
-worker0.nandita.vcenterlocalhost.com.    IN  A 172.40.20.174  ; Worker node 0
-worker1.nandita.vcenterlocalhost.com.    IN  A 172.40.20.175  ; Worker node 1
+worker1.ocp512.vcenterlocalhost.com.    IN  A 172.40.20.174  ; Worker node 1
+worker2.ocp512.vcenterlocalhost.com.    IN  A 172.40.20.175  ; Worker node 2
+worker3.ocp512.vcenterlocalhost.com.    IN  A 172.40.20.176  ; Worker node 3

@@ -1,0 +1,4 @@
+Mohammed Khalifullah
+ 
+172.40.20.230 service.vcenterlocalhost.com api.ocp4-17.vcenterlocalhost.com console-openshift-console.apps.ocp4-17.vcenterlocalhost.com oauth-openshift.apps.ocp4-17.vcenterlocalhost.com downloads-openshift-console.apps.ocp4-17.vcenterlocalhost.com alertmanager-main-openshift-monitoring.apps.ocp4-17.vcenterlocalhost.com grafana-openshift-monitoring.apps.ocp4-17.vcenterlocalhost.com prometheus-k8s-openshift-monitoring.apps.ocp4-17.vcenterlocalhost.com thanos-querier-openshift-monitoring.apps.ocp4-17.vcenterlocalhost.com 
+ 

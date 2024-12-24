@@ -8,14 +8,14 @@ $TTL 1W
     IN  NS  ns1.vcenterlocalhost.com.
 
 172.20.22.53 IN PTR pocenv.local
-200 IN  PTR ns1.vcenterlocalhost.com.                     ; Primary nameserver
-206 IN  PTR mohammed-bootstrap.mohammed.vcenterlocalhost.com.          ; Bootstrap
-201 IN  PTR mohammed-master-1.mohammed.vcenterlocalhost.com.     ; Control plane node 0
-202 IN  PTR mohammed-master-2.mohammed.vcenterlocalhost.com.     ; Control plane node 1
-203 IN  PTR mohammed-master-3.mohammed.vcenterlocalhost.com.     ; Control plane node 2
-204 IN  PTR mohammed-worker-1.mohammed.vcenterlocalhost.com.            ; Worker node 0
-205 IN  PTR mohammed-worker-2.mohammed.vcenterlocalhost.com.            ; Worker node 1
-207 IN  PTR mohammed-worker-3.mohammed.vcenterlocalhost.com.            ; Worker node 2
-200 IN  PTR api.mohammed.vcenterlocalhost.com.                ; API server
-200 IN  PTR api-int.mohammed.vcenterlocalhost.com.            ; Internal API load balancer
+170 IN  PTR ns1.vcenterlocalhost.com.                       ; Primary nameserver
+179 IN  PTR bootstrap.ocp512.vcenterlocalhost.com.          ; Bootstrap
+171 IN  PTR control-plane1.ocp512.vcenterlocalhost.com.     ; Control plane node 1
+172 IN  PTR control-plane2.ocp512.vcenterlocalhost.com.     ; Control plane node 2
+173 IN  PTR control-plane3.ocp512.vcenterlocalhost.com.     ; Control plane node 3
+174 IN  PTR worker1.ocp512.vcenterlocalhost.com.            ; Worker node 1
+175 IN  PTR worker1.ocp512.vcenterlocalhost.com.            ; Worker node 2
+176 IN  PTR worker1.ocp512.vcenterlocalhost.com.            ; Worker node 3
+170 IN  PTR api.ocp512.vcenterlocalhost.com.                ; API server
+170 IN  PTR api-int.ocp512.vcenterlocalhost.com.            ; Internal API load balancer
 
