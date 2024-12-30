@@ -8,6 +8,36 @@ fi
 
 set -e  # Exit on any command failure
 
+# Prompt the user for the new hostname
+read -p "Enter the desired hostname for this server: " NEW_HOSTNAME
+
+# Validate the hostname input
+if [[ ! $NEW_HOSTNAME =~ ^[a-zA-Z0-9.-]+$ ]]; then
+  echo "Error: Invalid hostname. Hostnames can only contain letters, numbers, dots, and hyphens."
+  exit 1
+fi
+
+# Set the hostname
+hostnamectl set-hostname "$NEW_HOSTNAME"
+
+# Verify the change
+CURRENT_HOSTNAME=$(hostname)
+if [ "$CURRENT_HOSTNAME" == "$NEW_HOSTNAME" ]; then
+  echo "Hostname successfully changed to $CURRENT_HOSTNAME."
+else
+  echo "Error: Hostname change failed. Current hostname is still $CURRENT_HOSTNAME."
+  exit 1
+fi
+
+# Update /etc/hosts to reflect the new hostname
+echo "Updating /etc/hosts file..."
+if grep -q "127.0.0.1" /etc/hosts; then
+  sed -i "s/^127\.0\.0\.1.*/127.0.0.1   localhost $NEW_HOSTNAME/" /etc/hosts
+else
+  echo "127.0.0.1   localhost $NEW_HOSTNAME" >> /etc/hosts
+fi
+echo "Hostname setup completed successfully!"
+
 echo "Starting OpenShift Cluster Setup on Bastion Node..."
 
 # Step 1: Git Installation and Repository Cloning
