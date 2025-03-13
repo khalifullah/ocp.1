@@ -1,0 +1,147 @@
+A Detailed Guide to Canary Deployments!
+https://medium.com/buildpiper/a-detailed-guide-to-canary-deployments-5321a03682e1
+
+While building enterprise applications, you want to ensure that your customers have a bug-free user experience. Since bugs show up whenever a new code is deployed, your deployment process should be set up to identify bugs at an advanced stage before these bugs can affect your users.
+
+What is Canary Deployment?
+Canary deployment is a technique to reduce the risk of bringing in a new software update in production by slowly rolling out the change to a small subset of users before allowing everyone to access the software.
+
+Stages of Canary Deployment!
+Canary deployment has three stages which include,
+
+Plan and Create
+The first stage of the canary deployment involves building a new canary infrastructure where the latest update is deployed. Some part of the traffic is sent to the canary instance, while most users continue to use the baseline instance.
+
+Analyze
+Once some traffic is diverted to the canary instance, the team collects data: metrics, logs, information from network traffic monitors and results from synthetic transaction monitors to identify and determine whether the new canary instance is working as it should. Then, the team then analyzes this data and compares the result to the baseline version.
+
+Roll
+After the canary analysis is completed, the team decides whether to go ahead with the release and roll it out for the rest of the users or roll back to the previous baseline state for fixing the issues.
+
+Benefits of Canary Deployment!
+Canary deployments can be an effective and beneficial release strategy if implemented in a correct manner. Let’s see how! Here are some of the benefits of implementing canary deployments.
+
+Fine- Control over Feature Deployments
+Conducting smaller and regular feature deployments reduces the risk of errors that can disrupt the entire workflow. If your team is able to identify an error in the canary deployment, then only a handful of users would get exposed to it, and it will be a minor issue that can be resolved easily.
+
+Real-World Testing
+Canary deployments are an awesome strategy to perform small-scale real-world testing without facing the risks of pushing an entirely new application to production in front of several users.
+
+Zero-Production Downtime with Faster Rollback
+Once the test on small production traffic has been conducted, then if a newly released software has some issues, it can easily be rolled back. In case of an error, the traffic is simply re-routed back to the baseline and the error is removed. Later, the DevOps team can then determine the root cause and resolve the issue before re-introducing a new update.
+
+Less Costly with Small Infra
+Since canary deployments are run on a small subset of users, DevOps teams need only a small infrastructure which reduces the cost of development and makes the whole process less costly.
+
+---------------------------------------------------------------------------------
+
+Practical 
+
+cat stable-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-canary-1
+  namespace: mohammed-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-prod
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: my-prod
+        version: v1
+    spec:
+      containers:
+      - name: my-prod
+        image: khalifullah/nginx-canary-deployment:v1
+        ports:
+        - containerPort: 80
+
+--------------------------------------------------------------------
+
+ cat canary-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-canary
+  namespace: mohammed-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-prod
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: my-prod
+        version: v2
+    spec:
+      containers:
+      - name: my-prod
+        image: khalifullah/nginx-canary-deployment:v2
+        ports:
+        - containerPort: 80
+
+----------------------------------------------------------------------
+
+cat service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx-service
+  namespace: mohammed-prod
+spec:
+  selector:
+    app: my-prod
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+-----------------------------------------------------------------------
+
+cat route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-app-route
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "50"  # 10% traffic to canary
+spec:
+  host: my-nginx-service-mohammed-prod.apps.ocp512.vcenterlocalhost.com  # Use the OpenShift-generated hostname
+  to:
+    kind: Service
+    name: my-nginx-service
+    weight: 50  # 90% traffic to stable
+  port:
+    targetPort: 80
+
+----------------------------------------------------------------------
+
+Adjust Traffic Splitting
+To adjust the traffic splitting, update the nginx.ingress.kubernetes.io/canary-weight annotation in the Route YAML file. For example, to send 50% traffic to the canary version:
+
+annotations:
+  nginx.ingress.kubernetes.io/canary: "true"
+  nginx.ingress.kubernetes.io/canary-weight: "50"  # 50% traffic to canary
+
+Reapply the route:
+oc apply -f route.yaml
+
+----------------------------------------------------------------------
+
+Rollback (if needed)
+If issues are detected, set the canary-weight to 0 to stop traffic to the canary version:
+
+annotations:
+  nginx.ingress.kubernetes.io/canary: "true"
+  nginx.ingress.kubernetes.io/canary-weight: "0"  # 0% traffic to canary
+
+Reapply the route:
+oc apply -f route.yaml
