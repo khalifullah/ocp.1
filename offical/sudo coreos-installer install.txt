@@ -1,0 +1,5 @@
+sudo coreos-installer install /dev/sda \
+--insecure \
+--image-url http://172.40.20.230:8080/ocp4/rhcos \
+--insecure-ignition \
+--ignition-url http://172.40.20.230:8080/ocp4/worker.ign
