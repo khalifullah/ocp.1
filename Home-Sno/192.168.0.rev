@@ -1,0 +1,15 @@
+$TTL 1W
+@ IN SOA ns1.example.com. root.example.com. (
+    2025080702 ; serial
+    3H         ; refresh
+    30M        ; retry
+    2W         ; expiry
+    1W )       ; minimum
+    IN NS ns1.example.com.
+
+100 IN PTR dns.example.com.
+200 IN PTR ns1.example.com.
+200 IN PTR smtp.example.com.
+200 IN PTR bastion-node.example.com.
+201 IN PTR api.uae-ocp-v.example.com.
+201 IN PTR api-int.uae-ocp-v.example.com.
