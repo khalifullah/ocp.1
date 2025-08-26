@@ -1,0 +1,90 @@
+Install and Enable HAProxy
+
+  # yum install haproxy -y
+
+Enable and start the HAProxy service:
+
+  # systemctl --now enable haproxy
+
+Backup the current HAProxy configuration file:
+
+  # cp -pRvf /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg-bkp
+
+3. Restore or Update HAProxy Configuration, copy the updated HAProxy configuration file:
+
+  # cp haproxy.cfg /etc/haproxy/haproxy.cfg
+
+Apply SELinux context to the configuration directory:
+
+  # restorecon -RvF /etc/haproxy
+
+
+Create the HAProxy log file if it does not exist:
+  # touch /var/log/haproxy.log
+
+
+Ensure the haproxy.cfg file contains the following logging directives under the global and defaults sections:
+
+
+global
+  log 127.0.0.1:514 local2
+
+defaults
+  log global
+  option httplog
+
+
+Verify that frontend and backend sections include appropriate logging options such as log global and option tcplog or option httplog.
+
+
+Create or update the rsyslog configuration file /etc/rsyslog.d/haproxy.conf with the following content:
+
+module(load="imudp")
+input(type="imudp" port="514")
+$UDPServerAddress 127.0.0.1
+local2.* /var/log/haproxy.log
+
+Modify /etc/rsyslog.conf to exclude local2 logs from /var/log/messages by ensuring the following line is present:
+
+  *.info;mail.none;authpriv.none;cron.none;local2.none /var/log/messages
+
+
+Restart the rsyslog service:
+
+  # systemctl restart rsyslog
+
+
+Restart the HAProxy service:
+  
+  # systemctl restart haproxy
+
+Monitor the HAProxy log file to confirm logging is active:
+
+  # tail -f /var/log/haproxy.log
+
+Check the status of HAProxy and rsyslog services:
+
+  # systemctl status haproxy
+  # systemctl status rsyslog
+
+HAProxy Logrotate Configuration /etc/logrotate.d/haproxy after you setup and to test send some traffic to test manually.
+
+
+# cat /etc/logrotate.d/haproxy 
+/var/log/haproxy.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    create 0640 root root
+    postrotate
+        /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+        /usr/bin/systemctl -s HUP kill rsyslog.service >/dev/null 2>&1 || true
+    endscript
+}
+
+Command to force immediate rotation with verbose output to test 
+
+     # logrotate  -v -f  /etc/logrotate.d/haproxy 
