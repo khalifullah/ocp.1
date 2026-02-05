@@ -1,0 +1,37 @@
+RHCOS ISO Link
+
+https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.18/latest/rhcos-4.18.1-x86_64-live.x86_64.iso
+
+https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.18/latest/rhcos-4.18.1-x86_64-metal.x86_64.raw.gz
+
+OC Utility Installation:
+
+https://access.redhat.com/downloads/content/290/ver=4.18/rhel---9/4.18.22/x86_64/product-software
+
+install-config.yaml
+
+
+apiVersion: v1
+baseDomain: npc.uae
+compute:
+  - hyperthreading: Enabled
+    name: worker
+    replicas: 0 # Must be set to 0 for User Provisioned Installation as worker nodes will be manually deployed.
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+metadata:
+  name: npcoscl
+networking:
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  networkType: OVNKubernetes
+  serviceNetwork:
+    - 172.30.0.0/16
+platform:
+  none: {}
+fips: false
+pullSecret: ''
+sshKey: ""
